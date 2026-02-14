@@ -2,7 +2,9 @@ import { ArrowRight, ArrowUpRight, Clock, Layers } from "lucide-react";
 import { Navbar } from "../../components/Navbar";
 import type { Route } from "./+types/home";
 import { Button } from "../../components/ui/Button";
-import React from 'react'
+import React, { useRef, useState } from 'react'
+import { Upload } from "../../components/Upload";
+import { useNavigate } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -12,6 +14,32 @@ export function meta({}: Route.MetaArgs) {
 }
 
 const Home = () => {
+
+    const navigate = useNavigate();
+
+    const [projects, setProjects] = useState<DesignItem[]>([]);
+    
+    const isCreatingProjectRef = useRef(false);
+
+    const handleUploadComplete = async (base64Image: string) => {
+        try {
+            if(isCreatingProjectRef.current) return false;
+            isCreatingProjectRef.current = true;
+            const newId = Date.now().toString();
+            const name = `Residence ${newId}`;
+
+            const newItem = {
+                id: newId, name, sourceImage: base64Image,
+                renderedImage: undefined,
+                timestamp: Date.now()
+            }
+            navigate(`/visualizer/${newId}`);
+            return true;
+        } finally {
+            isCreatingProjectRef.current = false;
+        }
+    }
+
     return (
         <div className="home">
             <Navbar/>
@@ -45,7 +73,7 @@ const Home = () => {
                             <h3>Upload your floor plan</h3>
                             <p>Supports JPG, PNG, formats up to 10MB</p>
                         </div>
-                        {/* Upload */}
+                        <Upload onComplete={handleUploadComplete} />
                     </div>
                 </div>
             </section>
